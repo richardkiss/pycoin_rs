@@ -18,15 +18,38 @@ pub struct PyPublicKey(pub PublicKey);
 
 #[pymethods]
 impl PyPublicKey {
-    fn p2pkh_address(&self, network: PyNetwork) -> PyAddress {
-        PyAddress(Address::p2pkh(&self.0, network.into()))
+    fn to_string(&self) -> PyResult<String> {
+        Ok(self.0.to_string())
     }
-    /*
+
+    fn p2pkh_address(&self, network: PyNetwork) -> PyResult<PyAddress> {
+        match Address::p2pkh(&self.0, network.into()) {
+            Ok(address) => Ok(PyAddress(address)),
+            Err(err) => Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "Error creating p2pkh address: {:?}",
+                err
+            ))),
+        }
+    }
+    
     fn p2wpkh_address(&self, network: PyNetwork) -> PyResult<PyAddress> {
-        Ok(PyAddress(Address::p2wpkh(&self.0, network.0).ok_or()))
+        match Address::p2wpkh(&self.0, network.0) {
+            Ok(address) => Ok(PyAddress(address)),
+            Err(err) => Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "Error creating p2wpkh address: {:?}",
+                err
+            ))),
+        }
     }
+
     fn p2shwpkh_address(&self, network: PyNetwork) -> PyResult<PyAddress> {
-        Ok(PyAddress(Address::p2shwpkh(&self.0, network.0)?))
+        match Address::p2shwpkh(&self.0, network.0) {
+            Ok(address) => Ok(PyAddress(address)),
+            Err(err) => Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "Error creating p2shwpkh address: {:?}",
+                err
+            ))),
+        }
     }
-    */
+    
 }

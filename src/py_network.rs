@@ -3,7 +3,7 @@ use pyo3::prelude::pyclass;
 
 #[derive(Clone)]
 #[pyclass(name = "Network")]
-pub struct PyNetwork(Network);
+pub struct PyNetwork(pub Network);
 
 impl PyNetwork {
     pub fn new(network: Network) -> Self {
