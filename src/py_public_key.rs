@@ -22,14 +22,8 @@ impl PyPublicKey {
         Ok(self.0.to_string())
     }
 
-    fn p2pkh_address(&self, network: PyNetwork) -> PyResult<PyAddress> {
-        match Address::p2pkh(&self.0, network.into()) {
-            Ok(address) => Ok(PyAddress(address)),
-            Err(err) => Err(pyo3::exceptions::PyValueError::new_err(format!(
-                "Error creating p2pkh address: {:?}",
-                err
-            ))),
-        }
+    fn p2pkh_address(&self, network: PyNetwork) -> PyAddress {
+        PyAddress(Address::p2pkh(&self.0, network.into()))
     }
     
     fn p2wpkh_address(&self, network: PyNetwork) -> PyResult<PyAddress> {
