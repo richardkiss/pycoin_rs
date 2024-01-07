@@ -1,6 +1,13 @@
 // build.rs
-use vergen::vergen;
+use std::error::Error;
+use vergen::EmitBuilder;
 
-fn main() {
-    vergen(vergen::OutputFns::all()).unwrap();
+fn main() -> Result<(), Box<dyn Error>> {
+    // Emit the instructions
+    EmitBuilder::builder()
+        .all_build()
+        .all_git()
+        .all_cargo()
+        .emit()?;
+    Ok(())
 }

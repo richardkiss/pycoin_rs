@@ -18,8 +18,6 @@ use pyo3::types::PyString;
 use std::iter;
 use std::str::FromStr;
 
-include!(concat!(env!("OUT_DIR"), "/version.rs"));
-
 fn xpub_child_to_pk(derivation_path_str: &str, xpub: XPub) -> PyPublicKey {
     let derivation_path: DerivationPath = DerivationPath::from_str(derivation_path_str).unwrap();
     let mut child_xpub = xpub;
@@ -64,9 +62,18 @@ fn pycoin_rs(py: Python, m: &PyModule) -> PyResult<()> {
     m.add("MAINNET", PyNetwork::new(Network::Bitcoin))?;
     m.add("TESTNET", PyNetwork::new(Network::Testnet))?;
 
-    m.add("__version__", PyString::new(py, semver()))?;
-    m.add("__sha__", PyString::new(py, sha()))?;
-    m.add("__target__", PyString::new(py, target()))?;
-    m.add("__now__", PyString::new(py, now()))?;
+    m.add(
+        "__version__",
+        PyString::new(py, env!("VERGEN_GIT_DESCRIBE")),
+    )?;
+    m.add("__sha__", PyString::new(py, env!("VERGEN_GIT_SHA")))?;
+    m.add(
+        "__target__",
+        PyString::new(py, env!("VERGEN_CARGO_TARGET_TRIPLE")),
+    )?;
+    m.add(
+        "__build_date__",
+        PyString::new(py, env!("VERGEN_BUILD_DATE")),
+    )?;
     Ok(())
 }
