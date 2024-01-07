@@ -183,6 +183,8 @@ jobs:
           options: -v ${{ github.workspace }}:/io -w /io
           run: |
             apk add py3-pip
+            python3 -m venv venv
+            . venv/bin/activate
             pip3 install -U pip pytest
             pip3 install ${{ env.PACKAGE_NAME }} --no-index --find-links /io/dist/ --force-reinstall
             python3 -m pytest
@@ -221,6 +223,8 @@ jobs:
           githubToken: ${{ github.token }}
           install: |
             apk add py3-pip
+            python3 -m venv venv
+            . venv/bin/activate
             pip3 install -U pip pytest
           run: |
             pip3 install ${{ env.PACKAGE_NAME }} --no-index --find-links dist/ --force-reinstall
