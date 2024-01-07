@@ -22,6 +22,7 @@ jobs:
           CIBW_TEST_REQUIRES: pytest
           CIBW_TEST_COMMAND: "pytest {project}/tests"
           CIBW_BEFORE_BUILD_LINUX: "curl -o rustup.sh --proto '=https' --tlsv1.2 https://sh.rustup.rs && sh ./rustup.sh -y"
+          CIBW_ENVIRONMENT: PATH=$PATH:$HOME/.cargo/bin
 
       - uses: actions/upload-artifact@v4
         with:
