@@ -26,3 +26,5 @@ def test_bip32_derivation():
 
     # `ku P:1 -s 99999 -a`
     assert str(addresses[99999]) == "1A2vPRHSvZkeJ4Q1ZvLHiipcihPT1whYS9"
+
+test_bip32_derivation()
