@@ -1,9 +1,11 @@
 mod b58;
+mod utils;
 mod py_derivation_path;
 mod py_network;
 mod py_public_key;
 
 use b58::create_b58_module;
+use utils::create_utils_module;
 use bip32::DerivationPath;
 use bip32::XPub;
 use bitcoin::network::constants::Network;
@@ -54,6 +56,7 @@ fn public_keys_for_xpub_str_and_paths(
 #[pymodule]
 fn pycoin_rs(py: Python, m: &PyModule) -> PyResult<()> {
     m.add_submodule(create_b58_module(py)?)?;
+    m.add_submodule(create_utils_module(py)?)?;
 
     m.add_class::<PyDerivationPath>()?;
 
