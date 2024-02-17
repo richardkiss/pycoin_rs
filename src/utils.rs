@@ -1,9 +1,10 @@
-use bitcoin::blockdata::script::{Script, Instruction};
-use bitcoin::blockdata::opcodes::all::*;
-//use bitcoin::blockdata::opcodes::all::*;
 use pyo3::prelude::*;
 use pyo3::types::PyBytes;
 use pyo3::wrap_pyfunction;
+use bitcoin::{Address, Network};
+use bitcoin::blockdata::script::{Script, Instruction};
+use bitcoin::blockdata::opcodes::all::*;
+
 
 #[pyfunction]
 fn inverse_hash(hashstring: &str) -> String {
@@ -15,6 +16,32 @@ fn inverse_hash(hashstring: &str) -> String {
        .flat_map(|chunk| chunk.iter().rev())
        .collect::<String>()
 }
+
+
+#[pyfunction]
+fn script_to_address(script_pubkey: Vec<u8>, network: &str) -> PyResult<String> {
+    // Convert the script pubkey to a Script object
+    let script = Script::from(script_pubkey);
+
+    // Convert the network string to a Network enum value
+    let network_enum = match network {
+        "mainnet" => Network::Bitcoin,
+        "testnet" => Network::Testnet,
+        "signet" => Network::Signet,
+        "regtest" => Network::Regtest,
+        _ => return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Invalid network value")),
+    };
+
+    // Attempt to derive an address from the script and network
+    let address = match Address::from_script(&script, network_enum) {
+        Ok(addr) => addr.to_string(),
+        Err(_) => return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Failed to derive address")),
+    };
+
+    // Return the address as a String
+    Ok(address)
+}
+
 
 #[pyfunction]
 fn script_to_asm(script_bytes: Vec<u8>, py: Python) -> PyResult<Vec<PyObject>> {
@@ -122,25 +149,7 @@ fn opcode_to_bytes(opcode: bitcoin::blockdata::opcodes::All) -> Vec<u8> {
         OP_PUSHDATA1 => vec![0x4c],
         OP_PUSHDATA2 => vec![0x4d],
         OP_PUSHDATA4 => vec![0x4e],
-        //OP_1NEGATE => vec![0x4f],
         OP_RESERVED => vec![0x50],
-        //OP_1 => vec![0x51],
-        //OP_TRUE => vec![0x51],
-        /* OP_2 => vec![0x52],
-        OP_3 => vec![0x53],
-        OP_4 => vec![0x54],
-        OP_5 => vec![0x55],
-        OP_6 => vec![0x56],
-        OP_7 => vec![0x57],
-        OP_8 => vec![0x58],
-        OP_9 => vec![0x59],
-        OP_10 => vec![0x5a],
-        OP_11 => vec![0x5b],
-        OP_12 => vec![0x5c],
-        OP_13 => vec![0x5d],
-        OP_14 => vec![0x5e],
-        OP_15 => vec![0x5f],
-        OP_16 => vec![0x60], */
         OP_NOP => vec![0x61],
         OP_VER => vec![0x62],
         OP_IF => vec![0x63],
@@ -221,10 +230,6 @@ fn opcode_to_bytes(opcode: bitcoin::blockdata::opcodes::All) -> Vec<u8> {
         OP_CHECKMULTISIG => vec![0xae],
         OP_CHECKMULTISIGVERIFY => vec![0xaf],
         OP_NOP1 => vec![0xb0],
-        //OP_NOP2 => vec![0xb1],
-        //OP_CHECKLOCKTIMEVERIFY => vec![0xb1],
-        //OP_NOP3 => vec![0xb2],
-        //OP_CHECKSEQUENCEVERIFY => vec![0xb2],
         OP_NOP4 => vec![0xb3],
         OP_NOP5 => vec![0xb4],
         OP_NOP6 => vec![0xb5],
@@ -232,15 +237,10 @@ fn opcode_to_bytes(opcode: bitcoin::blockdata::opcodes::All) -> Vec<u8> {
         OP_NOP8 => vec![0xb7],
         OP_NOP9 => vec![0xb8],
         OP_NOP10 => vec![0xb9],
-        //OP_SMALLINTEGER => vec![0xfa],
-        //OP_PUBKEYS => vec![0xfb],
-        //OP_PUBKEYHASH => vec![0xfd],
-        //OP_PUBKEY => vec![0xfe],
         OP_INVALIDOPCODE => vec![0xff],
         _ => todo!(),
     }
 }
-
 
 
 /// A Python module implemented in Rust.
@@ -248,5 +248,6 @@ pub fn create_utils_module(py: Python) -> PyResult<&'_ PyModule> {
    let m = PyModule::new(py, "utils")?;
    m.add_function(wrap_pyfunction!(inverse_hash, m)?)?;
    m.add_function(wrap_pyfunction!(script_to_asm, m)?)?;
+   m.add_function(wrap_pyfunction!(script_to_address, m)?)?;
    Ok(m)
 }
