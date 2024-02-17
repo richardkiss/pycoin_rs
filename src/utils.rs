@@ -4,7 +4,7 @@ use pyo3::wrap_pyfunction;
 use bitcoin::{Address, Network};
 use bitcoin::blockdata::script::{Script, Instruction};
 use bitcoin::blockdata::opcodes::all::*;
-
+use std::panic;
 
 #[pyfunction]
 fn inverse_hash(hashstring: &str) -> String {
@@ -45,26 +45,36 @@ fn script_to_address(script_pubkey: Vec<u8>, network: &str) -> PyResult<String> 
 
 #[pyfunction]
 fn script_to_asm(script_bytes: Vec<u8>, py: Python) -> PyResult<Vec<PyObject>> {
-    let script = Script::from(script_bytes);
+    // Wrap the code block that may panic inside `catch_unwind()`
+    let result = panic::catch_unwind(|| {
+        let script = Script::from(script_bytes);
 
-    let mut asm: Vec<PyObject> = Vec::new();
+        let mut asm: Vec<PyObject> = Vec::new();
 
-    for instruction in script.instructions() {
-        match instruction {
-            Ok(instr) => {
-                let py_instruction = match instr {
-                    Instruction::Op(op) => opcode_to_bytes(op),
-                    Instruction::PushBytes(data) => data.to_vec(),
-                };
-                asm.push(PyBytes::new(py, &py_instruction).into());
-            },
-            Err(_) => {
-                return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Error processing script"));
+        for instruction in script.instructions() {
+            match instruction {
+                Ok(instr) => {
+                    let py_instruction = match instr {
+                        Instruction::Op(op) => opcode_to_bytes(op),
+                        Instruction::PushBytes(data) => data.to_vec(),
+                    };
+                    asm.push(PyBytes::new(py, &py_instruction).into());
+                },
+                Err(_) => {
+                    return Err(PyErr::new::<pyo3::exceptions::PyValueError, _>("Error processing script"));
+                }
             }
         }
-    }
 
-    Ok(asm)
+        Ok(asm)
+    });
+
+    // Handle the result of `catch_unwind()`
+    match result {
+        Ok(Ok(value)) => Ok(value), // If there was no panic, return the result
+        Ok(Err(err)) => Err(err), // If there was a panic and it returned an error, return that error
+        Err(_) => Err(PyErr::new::<pyo3::exceptions::PyRuntimeError, _>("Panic occurred")), // If there was a panic but it didn't return an error, return a custom error
+    }
 }
 
 
