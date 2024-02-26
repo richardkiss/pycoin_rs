@@ -1,0 +1,15 @@
+  make_sdist:
+    name: Make SDist
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 1  # Optional, use if you use setuptools_scm
+
+    - name: Build SDist
+      run: pipx run build --sdist
+
+    - uses: actions/upload-artifact@v4
+      with:
+        name: cibw-sdist
+        path: dist/*.tar.gz
